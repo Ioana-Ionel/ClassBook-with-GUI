@@ -1,0 +1,130 @@
+import Tkinter as tk
+from controller import Controller
+from repositoryDB import Repository
+from MySQL import DB
+
+
+class GUI(tk.Tk):
+    def __init__(self):
+        tk.Tk.__init__(self)
+        self.geometry('300x200')
+        self._frame = None
+        self.replace_frame(StartPage)
+        self.mainloop()
+
+    def replace_frame(self, frame_class):
+        new_frame = frame_class(self)
+        if self._frame is not None:
+            self._frame.destroy()
+        self._frame = new_frame
+        self._frame.pack(side='top', fill='both', expand=True)
+
+
+class StartPage(tk.Frame):
+    def __init__(self, master):
+        # inherits from the Frame class
+        tk.Frame.__init__(self, master)
+        button_1 = tk.Button(self, text='Add a new student', command=lambda: master.replace_frame(AddStudentPage)).pack()
+        button_2 = tk.Button(self, text='Add a grade',command=lambda: master.replace_frame(AddGradePage)).pack()
+        button_3 = tk.Button(self, text='Show students', command=lambda: master.replace_frame(ShowStudentsPage)).pack()
+        button_4 = tk.Button(self, text='Show grades', command=lambda :master.replace_frame(ShowStudentGrades)).pack()
+
+
+class AddStudentPage(tk.Frame, Controller):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        Controller.__init__(self, controller)
+        tk.Label(self, text='Last name').grid(row=1, column=0, sticky='W')
+        tk.Label(self, text='First name').grid(row=2, column=0, sticky='W')
+        tk.Label(self, text='Registration number').grid(row=3, column=0, sticky='W')
+        tk.Label(self, text='Class name').grid(row=4, column=0, sticky='W')
+        # entries
+        last_name = tk.Entry(self)
+        first_name = tk.Entry(self)
+        registration_nr = tk.Entry(self)
+        class_name = tk.Entry(self)
+        last_name.grid(row=1, column=1)
+        first_name.grid(row=2, column=1)
+        class_name.grid(row=4, column=1)
+        registration_nr.grid(row=3, column=1)
+        # other buttons
+        tk.Button(self, text="Return to start page",
+                  command=lambda: master.replace_frame(StartPage)).grid(row=5, column=0, pady=2)
+        tk.Button(self, text="Submit",
+                  command=lambda: self.createStudent(last_name, first_name, registration_nr, class_name)).grid(row=5, column=3, pady=2)
+
+    def createStudent(self, last_name, first_name, registration_nr, class_name):
+        controller.createStudent(self.getStudentInfo(last_name, first_name, registration_nr, class_name))
+        last_name.delete(0, 'end')
+        first_name.delete(0, 'end')
+        registration_nr.delete(0, 'end')
+        class_name.delete(0, 'end')
+
+    def getStudentInfo(self, last_name, first_name, registration_nr, class_name):
+        return'{},{},{},{}'. format(last_name.get(), first_name.get(), registration_nr.get(), class_name.get())
+
+
+class AddGradePage(tk.Frame, Controller):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        Controller.__init__(self, controller)
+        tk.Label(self, text='Last name').grid(row=1, column=0, sticky='W')
+        tk.Label(self, text='First name').grid(row=2, column=0, sticky='W')
+        tk.Label(self, text='Subject').grid(row=3, column=0, sticky='W')
+        tk.Label(self,text='Grade').grid(row=4, column=0, sticky='W')
+        last_name = tk.Entry(self)
+        first_name = tk.Entry(self)
+        subject = tk.Entry(self)
+        grade = tk.Entry(self)
+        last_name.grid(row=1, column=1)
+        first_name.grid(row=2, column=1)
+        subject.grid(row=3, column=1)
+        grade.grid(row=4, column=1)
+
+        tk.Button(self, text="Return to start page",
+                  command=lambda: master.replace_frame(StartPage)).grid(row=5, column=0, pady=2)
+        tk.Button(self, text='Submit', command=lambda: self.createGrade(last_name, first_name, subject, grade)).grid(row=5, column=3, pady=2)
+
+    def createGrade(self, last_name, first_name, subject, grade):
+        controller.addGrade(self.getGrades(last_name, first_name, subject, grade))
+        last_name.delete(0, 'end')
+        first_name.delete(0, 'end')
+        subject.delete(0, 'end')
+        grade.delete(0, 'end')
+
+    def getGrades(self, last_name, first_name, subject, grade):
+        return '{},{},{},{}'.format(last_name.get(), first_name.get(), subject.get(), grade.get())
+
+
+class ShowStudentsPage(tk.Frame, Controller):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        Controller.__init__(self, controller)
+        studentList = controller.returnStudent()
+        height = 1
+        for student in studentList:
+            b = tk.Label(self, text=student.getStudent())
+            b.grid(row=height, column=0)
+            height += 1
+        tk.Button(self, text="Return to start page",
+                  command=lambda: master.replace_frame(StartPage)).grid(row=100, column=0, pady=2)
+
+
+class ShowStudentGrades(tk.Frame, Controller):
+    def __init__(self, master):
+        tk.Frame.__init__(self, master)
+        Controller.__init__(self, controller)
+        studentList = controller.returnStudent()
+        height = 1
+        for student in studentList:
+            b = tk.Label(self, text=student.getSudentGrades())
+            b.grid(row=height, column=0)
+            height += 1
+        tk.Button(self, text="Return to start page",
+                  command=lambda: master.replace_frame(StartPage)).grid(row=100, column=0, pady=2)
+
+database = DB()
+repository = Repository(database)
+controller = Controller(repository)
+
+gui = GUI()
